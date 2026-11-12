@@ -1,0 +1,52 @@
+
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: heladeria-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "1313"
+      MYSQL_DATABASE: heladeria
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p1313"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./heladeria-api
+      dockerfile: Dockerfile
+    container_name: heladeria-api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/heladeria?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "1313"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./heladeria-front
+      dockerfile: Dockerfile
+    container_name: heladeria-front
+    ports:
+      - "3000:3000"
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      HOST: "0.0.0.0"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
