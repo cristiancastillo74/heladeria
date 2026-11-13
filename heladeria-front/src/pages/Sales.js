@@ -4,6 +4,7 @@ import { getProducts } from "../services/productService";
 import FlavorModal from "./FlavorModals";
 import { getSaleProInvents } from "../services/proInventService";
 import { getUserBranches } from "../services/userService";
+import { DeleteIcon } from '../assets/icons';
 import { useAuth } from "../context/AuthContext";
 
 const Sales = () => {
@@ -88,6 +89,28 @@ const Sales = () => {
         setCart([...cart, { ...product, sabores, cantidad: 1 }]);
       }
     }
+  };
+
+  const removeFromCart = (index) => {
+    setCart(prevCart => {
+      return prevCart
+        .map((item, i) => {
+          if (i !== index) return item;
+
+          // Los helados se eliminan completamente
+          if (item.isIceCream) {
+            return { ...item, cantidad: 0 };
+          }
+
+          // Los demás productos disminuyen en uno
+          return {
+            ...item,
+            cantidad: item.cantidad - 1
+          };
+        })
+        // Eliminar filas cuya cantidad llegó a cero
+        .filter(item => item.cantidad > 0);
+    });
   };
 
   const handleConfirmFlavors = (product, ballSelections, depot) => {
@@ -220,6 +243,7 @@ const Sales = () => {
             <th className="border p-2">Cantidad</th>
             <th className="border p-2">Precio U</th>
             <th className="border p-2">Subtotal</th>
+            <th className="border p-2">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -227,11 +251,25 @@ const Sales = () => {
             <tr key={idx}>
               <td className="border p-2">{item.name}</td>
               <td className="border p-2">{item.sabores}</td>
-              <td>{item.depotName || '—'}</td>
+              <td className="border p-2">{item.depotName || '—'}</td>
               <td className="border p-2">{item.cantidad}</td>
               <td className="border p-2">${item.price.toFixed(2)}</td>
               <td className="border p-2">
                 ${(item.price * item.cantidad).toFixed(2)}
+              </td>
+              <td className="border p-2 text-center">
+                <button
+                  className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                  onClick={() => removeFromCart(idx)}
+                >
+                   {item.isIceCream ? (
+                    <>
+                      Eliminar
+                    </>
+                  ) : (
+                    '(−)'
+                  )}
+                </button>
               </td>
             </tr>
           ))}
