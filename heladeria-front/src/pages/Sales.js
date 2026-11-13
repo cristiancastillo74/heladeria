@@ -289,31 +289,56 @@ const Sales = () => {
         Guardar Venta
       </button>
 
+      
       {showModal && saleInfo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg relative">
-            <h3 className="text-xl font-semibold text-green-700 mb-4">Venta registrada con éxito ✅</h3>
-            <p><strong>Total de la venta:</strong> ${saleInfo.total.toFixed(2)}</p>
-            <p><strong>Pagó con:</strong> ${saleInfo.payment.toFixed(2)}</p>
-            <p><strong>Cambio a devolver:</strong> ${saleInfo.change.toFixed(2)}</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 md:p-8 w-full md:w-[50vw] h-auto md:min-h-[50vh] shadow-xl relative flex flex-col justify-center">
 
-            <button
-              className="mt-6 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              onClick={() => setShowModal(false)}
-            >
-              Cerrar
-            </button>
+            {/* Título */}
+            <h3 className="text-2xl md:text-3xl font-bold text-green-700 mb-8">
+              Venta registrada con éxito ✅
+            </h3>
 
-            {/* Icono de cerrar en la esquina superior derecha */}
+            {/* Información de la venta */}
+            <div className="space-y-6 text-lg md:text-2xl text-gray-700">
+              <p>
+                <strong>Total de la venta:</strong>{' '}
+                ${saleInfo.total.toFixed(2)}
+              </p>
+
+              <p>
+                <strong>Pagó con:</strong>{' '}
+                ${saleInfo.payment.toFixed(2)}
+              </p>
+
+              <p>
+                <strong>Cambio a devolver:</strong>{' '}
+                ${saleInfo.change.toFixed(2)}
+              </p>
+            </div>
+
+            {/* Botón cerrar */}
+            <div className="flex justify-center mt-10">
+              <button
+                className="px-10 py-4 bg-green-600 text-white rounded-lg text-xl font-semibold hover:bg-green-700"
+                onClick={() => setShowModal(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+
+            {/* Icono cerrar */}
             <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+              className="absolute top-4 right-5 text-gray-500 hover:text-gray-800 text-3xl"
               onClick={() => setShowModal(false)}
             >
               &times;
             </button>
+
           </div>
         </div>
       )}
+
 
       {/* 🔹 Modal de selección de sabores */}
     <FlavorModal
