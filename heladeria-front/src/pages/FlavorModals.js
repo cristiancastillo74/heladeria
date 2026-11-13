@@ -80,11 +80,17 @@ const handleDepotChange = (e) => {
       return;
     }
 
-  // agregar el nombre del sabor al objeto para la tabla
-  const selectionsWithNames = selected.map(s => ({
-    ...s,
-    flavor: cylinders.find(c => c.cylinder.id === s.cylinderId)?.cylinder.flavor
-  }));
+  // Obtener los nombres de los sabores
+  const selectionsWithNames = selected.map(s => {
+    const cylinder = cylinders.find(
+      c => Number(c.id) === Number(s.cylinderId)
+    );
+
+    return {
+      ...s,
+      flavor: cylinder?.cylinder?.flavor || 'Sabor desconocido'
+    };
+  });
 
   const selectedDepotObj = proInvents.find(p => p.product.id === selectedDepot);
 
