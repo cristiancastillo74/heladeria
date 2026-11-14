@@ -7,6 +7,25 @@ import { getUserBranches } from "../services/userService";
 import { DeleteIcon } from '../assets/icons';
 import { useAuth } from "../context/AuthContext";
 
+
+const HELADO_ADICIONALES = {
+  VT: [
+    { code: "DVT", quantity: 1 }
+  ],
+  PI: [
+    { code: "BRQ", quantity: 1 },
+    { code: "MIEL", quantity: 1 }
+  ],
+  H14: [
+    { code: "BRQ", quantity: 2 },
+    { code: "MIEL", quantity: 1 }
+  ],
+  H12: [
+    { code: "BRQ", quantity: 3 },
+    { code: "MIEL", quantity: 1 }
+  ]
+};
+
 const Sales = () => {
   const [cart, setCart]                       = useState([]);
   const [products, setProducts]               = useState([]);
@@ -123,6 +142,24 @@ const Sales = () => {
 
   const calculateTotal = () => {
     return cart.reduce((sum, item) => sum + item.price * item.cantidad, 0);
+  };
+
+  const getMandatoryAdditions = (item) => {
+    if (!item.isIceCream) return [];
+
+    const additions = HELADO_ADICIONALES[item.code?.trim().toUpperCase()] || [];
+
+    return additions.map((addition) => {
+      const product = products.find(
+        (p) => p.code?.trim().toUpperCase() === addition.code
+      );
+
+      return {
+        code: addition.code,
+        name: product?.name || addition.code,
+        quantity: addition.quantity * item.cantidad
+      };
+    });
   };
 
   const handleSaveSale = async () => {
@@ -247,32 +284,88 @@ const Sales = () => {
           </tr>
         </thead>
         <tbody>
-          {cart.map((item, idx) => (
-            <tr key={idx}>
-              <td className="border p-2">{item.name}</td>
-              <td className="border p-2">{item.sabores}</td>
-              <td className="border p-2">{item.depotName || '—'}</td>
-              <td className="border p-2">{item.cantidad}</td>
-              <td className="border p-2">${item.price.toFixed(2)}</td>
-              <td className="border p-2">
-                ${(item.price * item.cantidad).toFixed(2)}
-              </td>
-              <td className="border p-2 text-center">
-                <button
-                  className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                  onClick={() => removeFromCart(idx)}
-                >
-                   {item.isIceCream ? (
-                    <>
-                      Eliminar
-                    </>
-                  ) : (
-                    '(−)'
-                  )}
-                </button>
-              </td>
-            </tr>
-          ))}
+          {cart.map((item, idx) => {
+            const additions = getMandatoryAdditions(item);
+
+            return (
+              <React.Fragment key={idx}>
+
+                {/* Producto principal */}
+                <tr className="bg-white">
+                  <td className="border p-2 font-semibold">
+                    {item.name}
+                  </td>
+
+                  <td className="border p-2">
+                    {item.sabores}
+                  </td>
+
+                  <td className="border p-2">
+                    {item.depotName || '—'}
+                  </td>
+
+                  <td className="border p-2 text-center">
+                    {item.cantidad}
+                  </td>
+
+                  <td className="border p-2 text-right">
+                    ${item.price.toFixed(2)}
+                  </td>
+
+                  <td className="border p-2 text-right">
+                    ${(item.price * item.cantidad).toFixed(2)}
+                  </td>
+
+                  <td className="border p-2 text-center">
+                    <button
+                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                      onClick={() => removeFromCart(idx)}
+                    >
+                      {item.isIceCream ? 'Eliminar' : '(−)'}
+                    </button>
+                  </td>
+                </tr>
+
+                {/* Productos adicionales obligatorios */}
+                {additions.map((addition, additionIdx) => (
+                  <tr
+                    key={`addition-${idx}-${additionIdx}`}
+                    className="bg-gray-50 text-gray-600"
+                  >
+                    <td className="border p-2 pl-6">
+                      <span className="text-gray-400 mr-2">↳</span>
+                      {addition.name}
+
+                      <span className="block text-xs text-gray-400 ml-5">
+                        Adicional obligatorio ({addition.code})
+                      </span>
+                    </td>
+
+                    <td className="border p-2 text-center">—</td>
+
+                    <td className="border p-2 text-center">—</td>
+
+                    <td className="border p-2 text-center">
+                      {addition.quantity}
+                    </td>
+
+                    <td className="border p-2 text-right">
+                      $0.00
+                    </td>
+
+                    <td className="border p-2 text-right font-medium text-green-600">
+                      $0.00
+                    </td>
+
+                    <td className="border p-2 text-center text-gray-400">
+                      —
+                    </td>
+                  </tr>
+                ))}
+
+              </React.Fragment>
+            );
+          })}
         </tbody>
       </table>
 

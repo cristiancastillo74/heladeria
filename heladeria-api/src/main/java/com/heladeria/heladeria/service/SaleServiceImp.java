@@ -42,12 +42,12 @@ public class SaleServiceImp implements SaleService{
                     new ProductQuantity("BRQ", 1),
                     new ProductQuantity("MIEL", 1)
             ),
-            "CUARTO", List.of(
+            "H14", List.of(
                     new ProductQuantity("R14", 1),
                     new ProductQuantity("BRQ", 2),
                     new ProductQuantity("MIEL", 1)
             ),
-            "MEDIO", List.of(
+            "H12", List.of(
                     new ProductQuantity("R12", 1),
                     new ProductQuantity("BRQ", 3),
                     new ProductQuantity("MIEL", 1)
@@ -247,24 +247,41 @@ public class SaleServiceImp implements SaleService{
                 // Descontar adicionales si el producto tiene en el mapa
                 List<ProductQuantity> adicionales = HELADO_ADICIONALES.get(product.getCode());
 
-                if(adicionales != null){
-                    for (ProductQuantity adicional : adicionales){
-                        /*System.out.println("Buscando producto adicional con code: " + adicional.getProductCode());
-                        System.out.println("Code recibido: '" + adicional.getProductCode() + "'");
-*/
-                        Product adicionalProduct = productRepository.findByCode(adicional.getProductCode())
-                                .orElseThrow(() -> new RuntimeException("Producto adicional no encontrado: " ));
-                        ProductInventory pi = productInventoryRepository.findByProductAndBranch(adicionalProduct, branch)
-                                .orElseThrow(() -> new RuntimeException("no hay inventari de los productos: "));
-                        int cantidadTotal = adicional.getQuantity() * item.getQuantity();
+                if (adicionales == null || adicionales.isEmpty()) {
+                    throw new RuntimeException(
+                            "No existen productos adicionales configurados para el helado: "
+                                    + product.getName()
+                                    + " (Código: " + product.getCode() + ")"
+                    );
+                }
 
-                        if(pi.getStock() < cantidadTotal){
-                            throw new RuntimeException("inventario insuficiente para el producto: " );
-                        }
-                        System.out.println("adicionalProduct" + adicionalProduct.getId());
+                for (ProductQuantity adicional : adicionales) {
 
-                        productInventoryService.disminuirStock(pi.getId(),cantidadTotal);
+                    Product adicionalProduct = productRepository.findByCode(adicional.getProductCode())
+                            .orElseThrow(() -> new RuntimeException(
+                                    "No existe el producto adicional con código: "
+                                            + adicional.getProductCode()
+                            ));
+
+                    ProductInventory pi = productInventoryRepository
+                            .findByProductAndBranch(adicionalProduct, branch)
+                            .orElseThrow(() -> new RuntimeException(
+                                    "No hay inventario registrado para: "
+                                            + adicionalProduct.getName()
+                                            + " en la sucursal: " + branch.getName()
+                            ));
+
+                    int cantidadTotal = adicional.getQuantity() * item.getQuantity();
+
+                    if (pi.getStock() < cantidadTotal) {
+                        throw new RuntimeException(
+                                "Stock insuficiente para: " + adicionalProduct.getName()
+                                        + ". Disponible: " + pi.getStock()
+                                        + ", requerido: " + cantidadTotal
+                        );
                     }
+
+                    productInventoryService.disminuirStock(pi.getId(), cantidadTotal);
                 }
             }
 

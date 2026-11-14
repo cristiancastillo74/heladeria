@@ -17,7 +17,7 @@ public interface SaleService {
     public boolean eliminarSale(Long id);
 
     // Lógica de negocio extra
-    Sale crearVenta(Sale sale, Long userId, Long branchId); // procesa venta con ítems y totales
+    Sale crearVenta(Sale sale, Long userId, Long branchId); //å procesa venta con ítems y totales
     Sale corregirVenta(Long saleId, Sale replacement);
     void eliminarVentaRestaurandoInventario(Long saleId);
     void cerrarDia(Long branchId); // cierra todas las ventas del día para una sucursal
