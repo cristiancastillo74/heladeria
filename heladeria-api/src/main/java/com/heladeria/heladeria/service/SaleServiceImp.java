@@ -68,7 +68,16 @@ public class SaleServiceImp implements SaleService {
             ),
             "SE", List.of(),
             "DO", List.of(),
-            "TR", List.of()
+            "TR", List.of(),
+            "BA", List.of(
+                new ProductQuantity("RBA", 1)
+            ),
+            "SUN", List.of(
+                new ProductQuantity("RSU", 1)
+            ),
+            "SUNJ", List.of(
+                new ProductQuantity("RSJ", 1)
+            )
     );
 
     @Override
