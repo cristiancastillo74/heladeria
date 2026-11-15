@@ -3,9 +3,10 @@ import axios from "axios";
 import * as XLSX from "xlsx"; // Importa xlsx
 import { jsPDF } from 'jspdf';  // Importar jsPDF correctamente
 import 'jspdf-autotable';       // Importar autoTable
-import logo from "../assets/imagenes/logo.jpeg"; // ✅ tu import
+import logo from "../assets/imagenes/logo.jpeg"; 
 import { ExcelIcon, PdfIcon } from "../assets/icons";
 import BranchFilter from '../component/BranchFilter';
+import { API_URL } from '../config/api';
 
 
 export default function SalesReport() {
@@ -48,33 +49,34 @@ export default function SalesReport() {
   const totalPages = Math.ceil(data.totalElements / itemsPerPage);  // Total de páginas
 
   const fetchReport = async () => {
-    try {
-      // Llamada a los datos paginados con los parámetros 'page' y 'size'
-      const res = await axios.get("http://localhost:8080/api/reports/sales", {
-        params: { 
-          startDate, 
-          endDate,
-          branchId: branchId || undefined,
-          page: currentPage - 1, // 'page' en backend comienza desde 0
-          size: itemsPerPage 
-        },
-      });
+  try {
+    // Obtener ventas paginadas
+    const res = await axios.get(`${API_URL}/api/reports/sales`, {
+      params: {
+        startDate,
+        endDate,
+        branchId: branchId || undefined,
+        page: currentPage - 1,
+        size: itemsPerPage
+      },
+    });
 
-      setData(res.data);  // Establece el objeto completo que viene desde el backend
+    setData(res.data);
 
-      // Llamada al total del periodo
-      const totalRes = await axios.get("http://localhost:8080/api/reports/sales/total", {
-        params: {
-          startDate: `${startDate}T00:00:00`,
-          endDate: `${endDate}T23:59:59`,
-          branchId: branchId || undefined,
-        },
-      });
-      setTotalAmount(totalRes.data);
-    } catch (err) {
-      console.error("Error fetching report", err);
-    }
-  };
+    // Obtener total del período
+    const totalRes = await axios.get(`${API_URL}/api/reports/sales/total`, {
+      params: {
+        startDate: `${startDate}T00:00:00`,
+        endDate: `${endDate}T23:59:59`,
+        branchId: branchId || undefined,
+      },
+    });
+
+    setTotalAmount(totalRes.data);
+  } catch (err) {
+    console.error("Error fetching report", err);
+  }
+};
 
   useEffect(() => {
     fetchReport();
@@ -148,7 +150,7 @@ const exportToPDF = async () => {
     const totalPages = Math.ceil(data.totalElements / itemsPerPage);
 
     const requests = Array.from({ length: totalPages }, (_, page) =>
-      axios.get("http://localhost:8080/api/reports/sales", {
+      axios.get(`${API_URL}/api/reports/sales`, {
         params: { startDate, endDate, branchId: branchId || undefined, page, size: itemsPerPage },
       })
     );
@@ -221,7 +223,7 @@ const exportToPDF = async () => {
   const totalPages = Math.ceil(data.totalElements / itemsPerPage);
 
   for (let page = 0; page < totalPages; page++) {
-    axios.get("http://localhost:8080/api/reports/sales", {
+    axios.get(`${API_URL}/api/reports/sales`, {
       params: {
         startDate,
         endDate,

@@ -4,6 +4,7 @@ import { DeleteIcon, EditIcon } from '../assets/icons';
 import { useAuth } from '../context/AuthContext';
 import { deleteSale, getSalesHistory } from '../services/saleService';
 import { getUserBranches } from '../services/userService';
+import { API_URL } from '../config/api';
 
 const currency = (amount) => `$${Number(amount || 0).toFixed(2)}`;
 const dateTime = (value) => value ? new Date(value).toLocaleString('es-SV') : '—';
@@ -100,7 +101,7 @@ export default function SalesHistory() {
         setSaving(false);
         return;
       }
-      const corrected = await axios.put(`http://localhost:8080/helados/sale/${editingSale.id}`, {
+      const corrected = await axios.put(`${API_URL}/helados/sale/${editingSale.id}`, {
         paymentAmount: Number(paymentAmount),
         items: editItems.map((item) => ({
           product: { id: item.productId },

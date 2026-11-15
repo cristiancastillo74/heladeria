@@ -6,7 +6,7 @@ import 'jspdf-autotable';       // Importar autoTable
 import logo from "../assets/imagenes/logo.jpeg"; // ✅ tu import
 import { ExcelIcon, PdfIcon } from "../assets/icons";
 import BranchFilter from '../component/BranchFilter';
-
+import { API_URL } from '../config/api';
 
 export default function CylinderReport() {
   const [data, setData]                 = useState([]);
@@ -40,7 +40,7 @@ export default function CylinderReport() {
 
   const fetchReport = async () => {
   try {
-    const res = await axios.get("http://localhost:8080/api/reports/inventory/cylinders", {
+    const res = await axios.get(`${API_URL}/api/reports/inventory/cylinders`, {
       params: { branchId: branchId || undefined }
     });
     console.log("✅ Datos recibidos:", res.data);

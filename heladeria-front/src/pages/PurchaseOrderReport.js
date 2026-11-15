@@ -5,8 +5,8 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { AddIcon, DeleteIcon, ExcelIcon, PdfIcon } from '../assets/icons';
 import { getUserBranches } from '../services/userService';
+import { API_URL } from '../config/api';
 
-const API_URL = 'http://localhost:8080/api/purchase-orders';
 const money = (value) => `$${Number(value || 0).toFixed(2)}`;
 const dateLabel = (value) => value ? new Date(value).toLocaleString('es-SV') : '';
 
@@ -31,7 +31,7 @@ export default function PurchaseOrderReport({ type }) {
   ), [selectedItems]);
 
   const loadOrders = async () => {
-    const response = await axios.get(`${API_URL}/${type}`);
+    const response = await axios.get(`${API_URL}/api/purchase-orders/${type}`);
     setSavedOrders(response.data);
   };
 
@@ -40,7 +40,7 @@ export default function PurchaseOrderReport({ type }) {
       setCandidates([]);
       return [];
     }
-    const response = await axios.get(`${API_URL}/${type}/candidates`, {
+    const response = await axios.get(`${API_URL}/api/purchase-orders/${type}/candidates`, {
       params: { branchId: selectedBranchId }
     });
     setCandidates(response.data);
@@ -114,7 +114,7 @@ export default function PurchaseOrderReport({ type }) {
     setError('');
     setNotice('');
     try {
-      const response = await axios.get(`${API_URL}/${type}/${order.id}`);
+      const response = await axios.get(`${API_URL}/api/purchase-orders/${type}/${order.id}`);
       const saved = response.data;
       setCurrentOrderId(saved.id);
       setBranchId(String(saved.branchId));
@@ -167,8 +167,8 @@ export default function PurchaseOrderReport({ type }) {
     setSaving(true);
     try {
       const response = currentOrderId
-        ? await axios.put(`${API_URL}/${type}/${currentOrderId}`, payload)
-        : await axios.post(`${API_URL}/${type}`, payload);
+        ? await axios.put(`${API_URL}/api/purchase-orders/${type}/${currentOrderId}`, payload)
+        : await axios.post(`${API_URL}/api/purchase-orders/${type}`, payload);
       setCurrentOrderId(response.data.id);
       setNotice(currentOrderId ? 'Reporte actualizado.' : 'Reporte guardado.');
       await loadOrders();

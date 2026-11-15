@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getUserBranches } from '../services/userService';
+import { API_URL } from '../config/api';
 
 const money = (value) => `$${Number(value || 0).toFixed(2)}`;
 
@@ -22,7 +23,7 @@ export default function Dashboard() {
     let active = true;
     setLoading(true);
     setError('');
-    axios.get('http://localhost:8080/api/dashboard', {
+    axios.get(`${API_URL}/api/dashboard`, {
       params: { branchId: branchId || undefined }
     }).then((response) => {
       if (active) setData(response.data);

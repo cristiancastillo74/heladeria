@@ -9,6 +9,7 @@ import logo from "../assets/imagenes/logo.jpeg"; // ✅ tu import
 import { PdfIcon } from "../assets/icons";
 import axios from "axios";
 import BranchFilter from '../component/BranchFilter';
+import { API_URL } from '../config/api';
 
 export default function BalanceReport() {
 
@@ -38,7 +39,7 @@ export default function BalanceReport() {
 
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8080/api/reports/balance", {
+      const response = await axios.get(`${API_URL}/api/reports/balance`, {
         params: { startDate, endDate, branchId: branchId || undefined }
       });
       setReport(response.data);

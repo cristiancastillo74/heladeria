@@ -1,53 +1,54 @@
-import axios from "axios";
+import axios from 'axios';
+import { API_URL } from '../config/api';
 
-const API_URL ="http://localhost:8080/helados/cyInventory";
+const API_ENDPOINT = `${API_URL}/helados/cyInventory`;
 
-//obtener el inventario de cilindros
 export const getCyInvent = async () => {
-    try{
-        const result = await axios.get(API_URL);
-        return result.data;
-    }catch(error){
-        console.log(error);
-        throw error;
-    }
-}
+  try {
+    const result = await axios.get(API_ENDPOINT);
+    return result.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
 
-//obtener solo los cilindors diferentes de vacios
 export const getCyInventDisponiblesCondicional = async () => {
-    try{
-        const result = await axios.get(API_URL+"/buy");
-        return result.data;
-    }catch(error){
-        console.log(error);
-        throw error;
-    }
-}
+  try {
+    const result = await axios.get(`${API_ENDPOINT}/buy`);
+    return result.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
 
 export const getSaleCyInventDisponibles = async (branchId) => {
-    const result = await axios.get('http://localhost:8080/helados/sale/inventory/cylinders/available', {
-        params: branchId ? { branchId } : {}
-    });
-    return result.data;
+  const result = await axios.get(
+    `${API_URL}/helados/sale/inventory/cylinders/available`,
+    {
+      params: branchId ? { branchId } : {}
+    }
+  );
+
+  return result.data;
 };
 
-//crear o editar  un inventario de cilindro
 export const saveInvent = async (cyInvent) => {
-    try{
-        const response = await axios.post(API_URL,cyInvent);
-        return response;
-    }catch(error){
-        console.log(error);
-        throw error;
-    }
+  try {
+    const response = await axios.post(API_ENDPOINT, cyInvent);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 };
 
-//eliminar ciInvent
 export const deleteCyInvent = async (id) => {
-    try{
-        await axios.delete(`${API_URL}/${id}`);
-    }catch(error){
-        console.log(error);
-        throw error;
-    }
+  try {
+    await axios.delete(`${API_ENDPOINT}/${id}`);
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 };
