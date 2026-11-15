@@ -1,3 +1,4 @@
+
 package com.heladeria.heladeria.service;
 
 import com.heladeria.heladeria.dto.BallSelection;
@@ -16,42 +17,58 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-public class SaleServiceImp implements SaleService{
+public class SaleServiceImp implements SaleService {
 
     @Autowired
-    private  SaleRepository saleRepository;
+    private SaleRepository saleRepository;
+
     @Autowired
     private ProductInventoryService productInventoryService;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private BranchRepository branchRepository;
+
     @Autowired
     private ProductRepository productRepository;
+
     @Autowired
     private ProductInventoryRepository productInventoryRepository;
+
     @Autowired
     private CylinderInventoryRepository cylinderInventoryRepository;
+
     @Autowired
     private CylinderRepository cylinderRepository;
 
+    // Configuración de adicionales obligatorios por tipo de helado
     private static final Map<String, List<ProductQuantity>> HELADO_ADICIONALES = Map.of(
-            "VT", List.of(new ProductQuantity("DVT", 1)),
+            "VT", List.of(
+                    new ProductQuantity("DVT", 1),
+                    new ProductQuantity("TVPC", 1)
+            ),
             "PI", List.of(
                     new ProductQuantity("DPI", 1),
                     new ProductQuantity("BRQ", 1),
-                    new ProductQuantity("MIEL", 1)
+                    new ProductQuantity("MIEL", 1),
+                    new ProductQuantity("TVPC", 1)
             ),
             "H14", List.of(
                     new ProductQuantity("R14", 1),
                     new ProductQuantity("BRQ", 2),
-                    new ProductQuantity("MIEL", 1)
+                    new ProductQuantity("TVPC", 1)
             ),
             "H12", List.of(
                     new ProductQuantity("R12", 1),
                     new ProductQuantity("BRQ", 3),
-                    new ProductQuantity("MIEL", 1)
-            )
+                    new ProductQuantity("MIEL", 1),
+                    new ProductQuantity("TME", 1)
+            ),
+            "SE", List.of(),
+            "DO", List.of(),
+            "TR", List.of()
     );
 
     @Override
@@ -84,10 +101,12 @@ public class SaleServiceImp implements SaleService{
     @Transactional
     public boolean eliminarSale(Long id) {
         Optional<Sale> sale = saleRepository.findById(id);
-        if (sale.isPresent()){
+
+        if (sale.isPresent()) {
             saleRepository.delete(sale.get());
             return true;
         }
+
         return false;
     }
 
@@ -96,11 +115,15 @@ public class SaleServiceImp implements SaleService{
     public Sale corregirVenta(Long saleId, Sale replacement) {
         Sale original = saleRepository.findById(saleId)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
         Long userId = original.getUser().getIdUser();
         Long branchId = original.getBranch().getId();
+
         restaurarInventario(original);
+
         saleRepository.delete(original);
         saleRepository.flush();
+
         return crearVenta(replacement, userId, branchId);
     }
 
@@ -109,29 +132,55 @@ public class SaleServiceImp implements SaleService{
     public void eliminarVentaRestaurandoInventario(Long saleId) {
         Sale sale = saleRepository.findById(saleId)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
         restaurarInventario(sale);
         saleRepository.delete(sale);
     }
 
     private void restaurarInventario(Sale sale) {
+
         for (SaleItem item : sale.getItems()) {
+
             Product product = item.getProduct();
-            if (product == null) continue;
+
+            if (product == null) {
+                continue;
+            }
+
             if (Boolean.TRUE.equals(product.getIsIceCream())) {
+
                 for (SaleFlavorSelection selection : item.getFlavorSelections()) {
+
                     Long consumedInventoryId = selection.getCylinderInventoryId();
+
                     if (consumedInventoryId != null) {
+
                         cylinderInventoryRepository.findById(consumedInventoryId)
-                                .ifPresent(inventory -> restoreCylinderInventory(inventory, selection.getBalls()));
+                                .ifPresent(inventory ->
+                                        restoreCylinderInventory(inventory, selection.getBalls())
+                                );
+
                     } else {
-                        cylinderInventoryRepository.findAllByCylinderAndBranchOrderByCreatedAtAsc(
-                                selection.getCylinder(), sale.getBranch()).stream()
-                            .filter(inventory -> inventory.getFraction() == null || inventory.getFraction() < 1.0)
-                            .findFirst()
-                            .ifPresent(inventory -> restoreCylinderInventory(inventory, selection.getBalls()));
+
+                        cylinderInventoryRepository
+                                .findAllByCylinderAndBranchOrderByCreatedAtAsc(
+                                        selection.getCylinder(),
+                                        sale.getBranch()
+                                )
+                                .stream()
+                                .filter(inventory ->
+                                        inventory.getFraction() == null
+                                                || inventory.getFraction() < 1.0
+                                )
+                                .findFirst()
+                                .ifPresent(inventory ->
+                                        restoreCylinderInventory(inventory, selection.getBalls())
+                                );
                     }
                 }
+
             } else {
+
                 productInventoryRepository.findByProductAndBranch(product, sale.getBranch())
                         .ifPresent(inventory -> {
                             inventory.setStock(inventory.getStock() + item.getQuantity());
@@ -142,12 +191,25 @@ public class SaleServiceImp implements SaleService{
     }
 
     private void restoreCylinderInventory(CylinderInventory inventory, Integer balls) {
+
         double estimatedBalls = inventory.getCylinder().getEstimatedBalls();
-        if (estimatedBalls <= 0) return;
+
+        if (estimatedBalls <= 0) {
+            return;
+        }
+
         double restored = inventory.getFraction() + (balls / estimatedBalls);
+
         inventory.setFraction(Math.min(1.0, restored));
-        inventory.setStatus(restored >= 1.0 ? Status.CYLINDER_LLENO
-                : restored > 0 ? Status.CYLINDER_EN_USO : Status.CYLINDER_VACIO);
+
+        inventory.setStatus(
+                restored >= 1.0
+                        ? Status.CYLINDER_LLENO
+                        : restored > 0
+                        ? Status.CYLINDER_EN_USO
+                        : Status.CYLINDER_VACIO
+        );
+
         cylinderInventoryRepository.save(inventory);
     }
 
@@ -160,10 +222,11 @@ public class SaleServiceImp implements SaleService{
             throw new RuntimeException("No hay items en la venta");
         }
 
-        // Obtener usuario y sucursal
+        // Obtener usuario
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
+        // Obtener sucursal
         Branch branch = branchRepository.findById(branchId)
                 .orElseThrow(() -> new RuntimeException("Sucursal no encontrada"));
 
@@ -172,8 +235,9 @@ public class SaleServiceImp implements SaleService{
 
         BigDecimal total = BigDecimal.ZERO;
 
-        // Procesar items
+        // Procesar items de la venta
         for (SaleItem item : sale.getItems()) {
+
             Product product = productRepository.findById(item.getProduct().getId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
@@ -181,62 +245,99 @@ public class SaleServiceImp implements SaleService{
 
             BigDecimal price = product.getPrice();
 
-            // Caso 1: Producto normal (no es helado)
-            if (!product.getIsIceCream()) {
-                ProductInventory pi = productInventoryRepository.findByProductAndBranch(product, branch)
-                        .orElseThrow(() -> new RuntimeException("No hay inventario para producto: " + product.getName() + " en esta sucursal"));
+            // CASO 1: Producto normal
+            if (!Boolean.TRUE.equals(product.getIsIceCream())) {
+
+                ProductInventory pi = productInventoryRepository
+                        .findByProductAndBranch(product, branch)
+                        .orElseThrow(() -> new RuntimeException(
+                                "No hay inventario para producto: "
+                                        + product.getName()
+                                        + " en esta sucursal"
+                        ));
 
                 if (pi.getStock() < item.getQuantity()) {
-                    throw new RuntimeException("Stock insuficiente para producto: " + product.getName());
+                    throw new RuntimeException(
+                            "Stock insuficiente para producto: "
+                                    + product.getName()
+                    );
                 }
 
-                productInventoryService.disminuirStock(pi.getId(), item.getQuantity());
-            }
-            // Caso 2: Producto tipo helado
-            else {
+                productInventoryService.disminuirStock(
+                        pi.getId(),
+                        item.getQuantity()
+                );
 
-                // Validar que vengan selecciones de bolas
-                if (item.getBallSelections() == null || item.getBallSelections().isEmpty()) {
-                    throw new RuntimeException("Debe seleccionar un sorbete para el producto: " + product.getName());
+            } else {
+
+                // CASO 2: Producto tipo helado
+
+                // Validar selecciones de bolas
+                if (item.getBallSelections() == null
+                        || item.getBallSelections().isEmpty()) {
+
+                    throw new RuntimeException(
+                            "Debe seleccionar un sorbete para el producto: "
+                                    + product.getName()
+                    );
                 }
 
-                // Calcular cuántas bolas debería llevar en total
+                // Calcular bolas esperadas
                 int bolasEsperadas = product.getBallsPerUnit() * item.getQuantity();
-                int bolasSeleccionadas = item.getBallSelections().stream()
+
+                int bolasSeleccionadas = item.getBallSelections()
+                        .stream()
                         .mapToInt(BallSelection::getBalls)
                         .sum();
 
                 if (bolasEsperadas != bolasSeleccionadas) {
-                    throw new RuntimeException("El producto " + product.getName() +
-                            " requiere " + bolasEsperadas + " bolas, pero seleccionó " + bolasSeleccionadas);
+                    throw new RuntimeException(
+                            "El producto " + product.getName()
+                                    + " requiere " + bolasEsperadas
+                                    + " bolas, pero seleccionó " + bolasSeleccionadas
+                    );
                 }
 
                 // Descontar bolas de cada cilindro
                 for (BallSelection selection : item.getBallSelections()) {
-                    CylinderInventory cylinderInventory = cylinderInventoryRepository.findById(selection.getCylinderId())
-                            .orElseThrow(() -> new RuntimeException("Cilindro no encontrado: " + selection.getCylinderId()));
+
+                    CylinderInventory cylinderInventory =
+                            cylinderInventoryRepository.findById(selection.getCylinderId())
+                                    .orElseThrow(() -> new RuntimeException(
+                                            "Cilindro no encontrado: "
+                                                    + selection.getCylinderId()
+                                    ));
 
                     if (cylinderInventory.getBranch() == null
                             || !cylinderInventory.getBranch().getId().equals(branch.getId())) {
-                        throw new RuntimeException("El cilindro seleccionado no pertenece a la sucursal de la venta");
+
+                        throw new RuntimeException(
+                                "El cilindro seleccionado no pertenece a la sucursal de la venta"
+                        );
                     }
 
                     SaleFlavorSelection flavorSelection = new SaleFlavorSelection();
+
                     flavorSelection.setSaleItem(item);
                     flavorSelection.setCylinder(cylinderInventory.getCylinder());
                     flavorSelection.setCylinderInventoryId(cylinderInventory.getId());
                     flavorSelection.setBalls(selection.getBalls());
+
                     item.getFlavorSelections().add(flavorSelection);
 
                     int bolasConsumidas = selection.getBalls();
-                    double fraccionConsumida = (double) bolasConsumidas /
-                            (double) cylinderInventory.getCylinder().getEstimatedBalls();
 
-                    double nuevaFraccion = cylinderInventory.getFraction() - fraccionConsumida;
+                    double fraccionConsumida = (double) bolasConsumidas
+                            / (double) cylinderInventory.getCylinder().getEstimatedBalls();
+
+                    double nuevaFraccion = cylinderInventory.getFraction()
+                            - fraccionConsumida;
+
                     cylinderInventory.setFraction(Math.max(0, nuevaFraccion));
 
                     if (nuevaFraccion <= 0) {
                         cylinderInventory.setStatus(Status.CYLINDER_VACIO);
+
                     } else if (cylinderInventory.getStatus() == Status.CYLINDER_LLENO) {
                         cylinderInventory.setStatus(Status.CYLINDER_EN_USO);
                     }
@@ -244,20 +345,32 @@ public class SaleServiceImp implements SaleService{
                     cylinderInventoryRepository.save(cylinderInventory);
                 }
 
-                // Descontar adicionales si el producto tiene en el mapa
-                List<ProductQuantity> adicionales = HELADO_ADICIONALES.get(product.getCode());
+                // ==========================================
+                // DESCONTAR ADICIONALES OBLIGATORIOS
+                // ==========================================
 
-                if (adicionales == null || adicionales.isEmpty()) {
+                String codigoHelado = product.getCode() == null
+                        ? ""
+                        : product.getCode().trim().toUpperCase();
+
+                List<ProductQuantity> adicionales =
+                        HELADO_ADICIONALES.get(codigoHelado);
+
+                // Error únicamente si el código no está configurado
+                if (adicionales == null) {
                     throw new RuntimeException(
                             "No existen productos adicionales configurados para el helado: "
                                     + product.getName()
-                                    + " (Código: " + product.getCode() + ")"
+                                    + " (Código: " + codigoHelado + ")"
                     );
                 }
 
+                // Si la lista está vacía (SE, DO, TR),
+                // no se descuenta ningún adicional.
                 for (ProductQuantity adicional : adicionales) {
 
-                    Product adicionalProduct = productRepository.findByCode(adicional.getProductCode())
+                    Product adicionalProduct = productRepository
+                            .findByCode(adicional.getProductCode())
                             .orElseThrow(() -> new RuntimeException(
                                     "No existe el producto adicional con código: "
                                             + adicional.getProductCode()
@@ -268,51 +381,69 @@ public class SaleServiceImp implements SaleService{
                             .orElseThrow(() -> new RuntimeException(
                                     "No hay inventario registrado para: "
                                             + adicionalProduct.getName()
-                                            + " en la sucursal: " + branch.getName()
+                                            + " en la sucursal: "
+                                            + branch.getName()
                             ));
 
                     int cantidadTotal = adicional.getQuantity() * item.getQuantity();
 
                     if (pi.getStock() < cantidadTotal) {
                         throw new RuntimeException(
-                                "Stock insuficiente para: " + adicionalProduct.getName()
+                                "Stock insuficiente para: "
+                                        + adicionalProduct.getName()
                                         + ". Disponible: " + pi.getStock()
                                         + ", requerido: " + cantidadTotal
                         );
                     }
 
-                    productInventoryService.disminuirStock(pi.getId(), cantidadTotal);
+                    productInventoryService.disminuirStock(
+                            pi.getId(),
+                            cantidadTotal
+                    );
                 }
             }
 
-            // Lógica común (precio y subtotal)
+            // ==========================================
+            // CALCULAR PRECIO Y SUBTOTAL
+            // ==========================================
+
             item.setPrice(price);
             item.setSale(sale);
 
-            // ⚠️ Verificar si hay que ignorar el precio
             if (Boolean.TRUE.equals(item.getIgnorePrice())) {
+
                 // No sumar al total
-                item.setPrice(BigDecimal.ZERO); // ← opcional, para que quede claro en la base
+                item.setPrice(BigDecimal.ZERO);
+
             } else {
-                BigDecimal subTotal = price.multiply(BigDecimal.valueOf(item.getQuantity()));
+
+                BigDecimal subTotal = price.multiply(
+                        BigDecimal.valueOf(item.getQuantity())
+                );
+
                 total = total.add(subTotal);
             }
         }
 
+        // Vincular items con la venta
         for (SaleItem item : sale.getItems()) {
-            item.setSale(sale);  // vincula cada item con la venta
+            item.setSale(sale);
         }
 
+        // Validar pago
         BigDecimal payment = sale.getPaymentAmount();
+
         if (payment == null || payment.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Debe indicar con cuánto pagó el cliente");
+            throw new RuntimeException(
+                    "Debe indicar con cuánto pagó el cliente"
+            );
         }
 
         if (payment.compareTo(total) < 0) {
             throw new RuntimeException("El pago es insuficiente");
         }
 
-        // calcular vuelto
+        // Calcular vuelto
         BigDecimal change = payment.subtract(total);
 
         sale.setTotalAmount(total);
@@ -327,7 +458,8 @@ public class SaleServiceImp implements SaleService{
     @Override
     @Transactional
     public void cerrarDia(Long branchId) {
-        // Cierra todas las ventas de hoy para una sucursal
+
+        // Cerrar todas las ventas del día para una sucursal
         List<Sale> ventasHoy = saleRepository.findByBranchIdAndCreatedAtBetween(
                 branchId,
                 LocalDate.now().atStartOfDay(),
@@ -337,7 +469,7 @@ public class SaleServiceImp implements SaleService{
         for (Sale sale : ventasHoy) {
             sale.setDayClosed(true);
         }
+
         saleRepository.saveAll(ventasHoy);
     }
-
 }
