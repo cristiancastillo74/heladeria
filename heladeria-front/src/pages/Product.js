@@ -98,12 +98,32 @@ const Products = () => {
     if(loading) return <p className='text-center mt-10'>Cargando Productos..</p>
     if(error)   return <p className='text-center mt-10 text-red-500'>{error}</p>
 
-  return (
-    <div className='p-10'>
-        <h1 className='text-2xl font-bold mb-4 text-center'>PRODUCTOS</h1>
-        
-        <PaginatedTable
-        columns={['ID', 'PRODUCTO','CODIGO','ESTADO','¿ES HELADO?', 'CATEGORIA', 'PRECIO VENTA', 'PRECIO COMPRA', 'BOLAS POR UNI', 'ACCIONES']}
+  
+return (
+  <div className="w-full min-w-0 px-3 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
+
+    {/* Encabezado */}
+    <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center sm:justify-between">
+      <h1 className="text-xl sm:text-2xl font-bold text-center sm:text-left">
+        PRODUCTOS
+      </h1>
+    </div>
+
+    {/* Tabla */}
+    <div className="w-full min-w-0 overflow-x-auto">
+      <PaginatedTable
+        columns={[
+          'ID',
+          'PRODUCTO',
+          'CODIGO',
+          'ESTADO',
+          '¿ES HELADO?',
+          'CATEGORIA',
+          'PRECIO VENTA',
+          'PRECIO COMPRA',
+          'BOLAS POR UNI',
+          'ACCIONES'
+        ]}
         data={products}
         renderRow={(product) => (
           <tr key={product.id} className="hover:bg-base-300">
@@ -111,82 +131,171 @@ const Products = () => {
             <td className="text-center">{product.name}</td>
             <td className="text-center">{product.code}</td>
             <td className="text-center">{product.status || 'ACTIVO'}</td>
-            <td className="text-center">{product.isIceCream ? "Sí" : "No"}</td>
+            <td className="text-center">
+              {product.isIceCream ? "Sí" : "No"}
+            </td>
             <td className="text-center">{product.category}</td>
             <td className="text-center">$ {product.price}</td>
-            <td className="text-center">{product.purchasePrice == null ? '—' : `$ ${product.purchasePrice}`}</td>
+            <td className="text-center">
+              {product.purchasePrice == null
+                ? '—'
+                : `$ ${product.purchasePrice}`}
+            </td>
             <td className="text-center">{product.ballsPerUnit}</td>
+
             <td>
-              <button className="btn btn-outline btn-warning me-1 btn-sm"
-                onClick={() => openEditModal(product)}>
-                  <EditIcon className="w-5 h-5 text-current " />
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+                <button
+                  className="btn btn-outline btn-warning btn-sm w-full sm:w-auto"
+                  onClick={() => openEditModal(product)}
+                >
+                  <EditIcon className="w-5 h-5 text-current" />
                   Editar
-              </button>
-              <button className="btn btn-outline btn-error ml-1 btn-sm"
-              onClick={() => openConfirmDelete(product.id)}>
-                <DeleteIcon className="w-5 h-5 text-current " />
-                Eliminar
-              </button>
+                </button>
+
+                <button
+                  className="btn btn-outline btn-error btn-sm w-full sm:w-auto"
+                  onClick={() => openConfirmDelete(product.id)}
+                >
+                  <DeleteIcon className="w-5 h-5 text-current" />
+                  Eliminar
+                </button>
+              </div>
             </td>
           </tr>
         )}
         extraAction={
-          <button className="btn btn-outline btn-primary "
-             onClick={openCreateModal}
+          <button
+            className="btn btn-outline btn-primary w-full sm:w-auto"
+            onClick={openCreateModal}
           >
-            <AddIcon className="w-5 h-5 text-current " />
+            <AddIcon className="w-5 h-5 text-current" />
             CREAR PRODUCTO
           </button>
         }
-        filasPorPagina={10} 
+        filasPorPagina={10}
       />
+    </div>
 
-      <dialog id="product_modal" className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg">{isEditing ? "Editar Producto" : "Nuevo Producto"}</h3>
-          <form method="dialog" className="mt-4 space-y-3" onSubmit={handleSubmit}>
-            <input 
-              type="text" 
-              placeholder="Nombre" 
-              className="input input-bordered w-full" 
+    {/* Modal crear / editar producto */}
+    <dialog id="product_modal" className="modal modal-middle">
+      <div className="modal-box w-11/12 max-w-lg max-h-[90vh] overflow-y-auto">
+        <h3 className="font-bold text-lg sm:text-xl">
+          {isEditing ? "Editar Producto" : "Nuevo Producto"}
+        </h3>
+
+        <form
+          className="mt-4 space-y-3"
+          onSubmit={handleSubmit}
+        >
+          <div>
+            <label className="label">
+              <span className="label-text">Nombre del producto</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Nombre"
+              className="input input-bordered w-full"
               value={currentProduct.name}
-              onChange={(e) => setCurrentProduct({ ...currentProduct, name: e.target.value })}
+              onChange={(e) =>
+                setCurrentProduct({
+                  ...currentProduct,
+                  name: e.target.value
+                })
+              }
+              required
             />
-            <input 
-              type="text" 
-              placeholder="Codigo" 
-              className="input input-bordered w-full" 
+          </div>
+
+          <div>
+            <label className="label">
+              <span className="label-text">Código</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Código"
+              className="input input-bordered w-full"
               value={currentProduct.code}
-              onChange={(e) => setCurrentProduct({ ...currentProduct, code: e.target.value })}
+              onChange={(e) =>
+                setCurrentProduct({
+                  ...currentProduct,
+                  code: e.target.value
+                })
+              }
             />
-            <select 
+          </div>
+
+          <div>
+            <label className="label">
+              <span className="label-text">Categoría</span>
+            </label>
+            <select
               className="select select-bordered w-full"
               value={currentProduct.category}
-              onChange={(e) => setCurrentProduct({ ...currentProduct, category: e.target.value })}
+              onChange={(e) =>
+                setCurrentProduct({
+                  ...currentProduct,
+                  category: e.target.value
+                })
+              }
               required
             >
               <option value="">Seleccione Categoría</option>
               {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
               ))}
             </select>
+          </div>
 
+          <div>
+            <label className="label">
+              <span className="label-text">Estado</span>
+            </label>
             <select
               className="select select-bordered w-full"
               value={currentProduct.status || 'ACTIVO'}
-              onChange={(e) => setCurrentProduct({ ...currentProduct, status: e.target.value })}
+              onChange={(e) =>
+                setCurrentProduct({
+                  ...currentProduct,
+                  status: e.target.value
+                })
+              }
               required
             >
-              {productStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+              {productStatuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
             </select>
+          </div>
 
-            <input 
-              type="number" 
-              placeholder="Precio de venta" 
-              className="input input-bordered w-full" 
+          <div>
+            <label className="label">
+              <span className="label-text">Precio de venta</span>
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Precio de venta"
+              className="input input-bordered w-full"
               value={currentProduct.price}
-              onChange={(e) => setCurrentProduct({ ...currentProduct, price: e.target.value })}
+              onChange={(e) =>
+                setCurrentProduct({
+                  ...currentProduct,
+                  price: e.target.value
+                })
+              }
             />
+          </div>
+
+          <div>
+            <label className="label">
+              <span className="label-text">Precio de compra</span>
+            </label>
             <input
               type="number"
               min="0"
@@ -195,52 +304,102 @@ const Products = () => {
               className="input input-bordered w-full"
               required
               value={currentProduct.purchasePrice ?? ''}
-              onChange={(e) => setCurrentProduct({ ...currentProduct, purchasePrice: e.target.value })}
+              onChange={(e) =>
+                setCurrentProduct({
+                  ...currentProduct,
+                  purchasePrice: e.target.value
+                })
+              }
             />
-            <input 
-              type="number" 
-              placeholder="Bolas por Unidad" 
-              className="input input-bordered w-full" 
-              value={currentProduct.ballsPerUnit}
-              onChange={(e) => setCurrentProduct({ ...currentProduct, ballsPerUnit: e.target.value })}
-            />
+          </div>
 
-            <input 
-              type="checkbox" 
+          <div>
+            <label className="label">
+              <span className="label-text">Bolas por unidad</span>
+            </label>
+            <input
+              type="number"
+              min="0"
+              placeholder="Bolas por unidad"
+              className="input input-bordered w-full"
+              value={currentProduct.ballsPerUnit}
+              onChange={(e) =>
+                setCurrentProduct({
+                  ...currentProduct,
+                  ballsPerUnit: e.target.value
+                })
+              }
+            />
+          </div>
+
+          <label className="flex items-center gap-3 cursor-pointer py-2">
+            <input
+              type="checkbox"
               className="checkbox"
               checked={currentProduct.isIceCream}
-              onChange={(e) => setCurrentProduct({ ...currentProduct, isIceCream: e.target.checked })}
-            /> ¿Es Helado?
+              onChange={(e) =>
+                setCurrentProduct({
+                  ...currentProduct,
+                  isIceCream: e.target.checked
+                })
+              }
+            />
+            <span className="label-text">¿Es helado?</span>
+          </label>
 
-            <div className="modal-action">
-              <button type="submit" className="btn btn-success">{isEditing ? "Actualizar" : "Guardar"}</button>
-              <button type="button" className="btn" onClick={() => document.getElementById("product_modal").close()}>
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      </dialog>
+          <div className="modal-action flex flex-col-reverse sm:flex-row">
+            <button
+              type="button"
+              className="btn w-full sm:w-auto"
+              onClick={() =>
+                document.getElementById("product_modal").close()
+              }
+            >
+              Cancelar
+            </button>
 
-      <dialog id="confirm_delete_modal" className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg text-red-500">Confirmar eliminación</h3>
-          <p className="py-4">¿Está seguro de que desea eliminar este producto?</p>
-          <div className="modal-action">
-            <button className="btn btn-error" onClick={confirmDelete}>Eliminar</button>
-            <button className="btn" onClick={() => {
+            <button type="submit" className="btn btn-success w-full sm:w-auto">
+              {isEditing ? "Actualizar" : "Guardar"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    {/* Modal confirmar eliminación */}
+    <dialog id="confirm_delete_modal" className="modal modal-middle">
+      <div className="modal-box w-11/12 max-w-md">
+        <h3 className="font-bold text-lg text-red-500">
+          Confirmar eliminación
+        </h3>
+
+        <p className="py-4">
+          ¿Está seguro de que desea eliminar este producto?
+        </p>
+
+        <div className="modal-action flex flex-col-reverse sm:flex-row">
+          <button
+            className="btn w-full sm:w-auto"
+            onClick={() => {
               setConfirmDeleteId(null);
               document.getElementById("confirm_delete_modal").close();
-            }}>Cancelar</button>
-          </div>
+            }}
+          >
+            Cancelar
+          </button>
+
+          <button
+            className="btn btn-error w-full sm:w-auto"
+            onClick={confirmDelete}
+          >
+            Eliminar
+          </button>
         </div>
-      </dialog>
+      </div>
+    </dialog>
 
+  </div>
+);
 
-
-    </div>
-
-    
-  );
 };
 export default Products;

@@ -115,134 +115,270 @@ const Expenses = () => {
 
     if(isLoading) return <p className='text-center mt-10'>Cargando Productos..</p>
     if(isError)   return <p className='text-center mt-10 text-red-500'>{isError}</p>
-    return (
-    <div className='p-10'>
-        <h1 className='text-2xl font-bold mb-4 text-center'>Registro de gastos</h1>
-        <PaginatedTable
-            columns={canManageExpenses
-                ? ['ID','GASTO','MONTO', 'TIPO','SUCURSAL','QUIEN REALIZO EL GASTO','FECHA registro','FECHA modificacion','ACCIONES']
-                : ['ID','GASTO','MONTO', 'TIPO','SUCURSAL','QUIEN REALIZO EL GASTO','FECHA registro','FECHA modificacion']}
-            data={expense}
-            renderRow={(ex) => (
-                <tr key={ex.id} className='hover:bg-base-300'>
-                    <td className='text-center'>{ex.id}</td>
-                    <td className='text-center'>{ex.descripcion}</td>
-                    <td className='text-center'>{ex.amount}</td>
-                    <td className='text-center'>{ex.typeExpense}</td>
-                    <td className='text-center'>{ex.branch?.name || 'Sin sucursal'}</td>
-                    <td className='text-center'>{ex.user?.firstName} {ex.user?.lastName}</td>
-                    <td className='text-center'>{ex.createdAt}</td>
-                    <td className='text-center'>{ex.updatedAt}</td>
-                    {canManageExpenses && <td>
-                        <button className='btn btn-outline btn-error ml-1 btn-sm'
-                            onClick={() =>{openDeleteModal(ex.id, ex.descripcion)}}>
-                                <DeleteIcon className='w-5 h-5 text-current'/>
-                                Eliminar
-                        </button>
-                    </td>}
-                </tr>
-            )}
-            extraAction={
-                <button className='btn btn-outline btn-primary'
-                onClick={openCreateModal}>
-                    <AddIcon className="w-5 h-5 text-current " />
-                    Registrar Gasto
-                </button>
-            }
-            filasPorPagina={10}
-        />
+    
+return (
+  <div className="w-full min-w-0 px-3 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
 
-        <dialog className='modal' id='save_modal'>
-            <div className='modal-box'>
-                <h3 className='font-bold text-lg text-yellow-500 text-center'>{isEditing ? 'Editando el Gasto' : 'Registrando un Nuevo Gasto'}</h3>
-                <form method='dialog' className='mt-4 space-y-3' onSubmit={handleSubmit}>
-                    <textarea 
-                        type='text'
-                        required
-                        placeholder='Descripcion del Gasto'
-                        className='input input-bordered w-full'
-                        value={currentExpense.descripcion}
-                        onChange={(e) => setCurrentExpense({...currentExpense, descripcion: e.target.value})}/>
-                        
-                    <select
-                    className="select select-bordered w-full"
-                    required
-                    value={currentExpense.typeExpense}
-                    onChange={(e) =>
-                        setCurrentExpense({ ...currentExpense, typeExpense: e.target.value })
-                    }>
-                    <option value="">-- Selecciona un tipo de gasto --</option>
-                    {typeExpenseOptions.map((type) => (
-                        <option key={type} value={type}>
-                        {type}
-                        </option>
-                    ))}
-                    </select>
-
-                    <input
-                    type='number'
-                    required
-                    min="0.01"
-                    step="0.01"
-                    placeholder='Monto del gasto'
-                    className='input input-bordered w-full'
-                    value={currentExpense.amount}
-                    onChange={(e) => setCurrentExpense({...currentExpense, amount: e.target.value})}/>
-
-                    <select
-                        className="select select-bordered w-full"
-                        required
-                        value={currentExpense.branch?.id || ''}
-                        onChange={(e) => {
-                            const selectedBranch = branches.find((branch) => branch.id === Number(e.target.value)) || null;
-                            setCurrentExpense((current) => ({ ...current, branch: selectedBranch }));
-                        }}
-                    >
-                        <option value="" disabled>-- Selecciona una sucursal --</option>
-                        {branches.map((branch) => (
-                            <option key={branch.id} value={branch.id}>{branch.name}</option>
-                        ))}
-                    </select>
-
-                    {saveError && <p className="text-sm text-error" role="alert">{saveError}</p>}
-
-                    {/* Mostrar info del usuario actual */}
-                    <div className="text-sm text-gray-600">
-                        {/* <h3><strong>Datos del usuario que registra el gasto</strong></h3> */}
-                        <p><strong>Usuario:</strong> {currentUser?.firstName} {currentUser?.lastName}</p>
-                        <p><strong>Sucursal seleccionada:</strong> {currentExpense.branch?.name || 'Selecciona una sucursal'}</p>
-                    </div>
-
-                    <div className="modal-action">
-                    <button type="submit" className="btn btn-success">{isEditing ? "Actualizar" : "Registrar"}</button>
-                    <button type="button" className="btn" onClick={() => document.getElementById("save_modal").close()}>
-                        Cancelar
-                    </button>
-                    </div>
-
-                </form>
-            </div>
-
-        </dialog>
-
-        <dialog className='modal' id='delete_modal'>
-            <div className='modal-box'>
-                <h3 className='font-bold text-lg text-red-500'>Eliminar el Gasto Registrado</h3>
-                <p>Estas seguro de eliminar el Gasto?: <strong>{confirmDeleteDesc}</strong> </p>
-                <div className='modal-accion'>
-                    <button className='btn btn-error' onClick={confirmDelete}>Eliminar</button>
-                    <button className='btn' 
-                        onClick={() =>{
-                            setconfirmDeleteId(null);
-                            setConfirmDeleteDesc('');
-                            document.getElementById('delete_modal').close();
-                        }}
-                        >Cancelar</button>
-                </div>
-            </div>
-        </dialog>
+    {/* Encabezado */}
+    <div className="mb-5">
+      <h1 className="text-xl sm:text-2xl font-bold text-center sm:text-left">
+        REGISTRO DE GASTOS
+      </h1>
     </div>
-  );
+
+    {/* Tabla */}
+    <div className="w-full min-w-0 overflow-x-auto">
+      <PaginatedTable
+        columns={canManageExpenses
+          ? [
+              'ID',
+              'GASTO',
+              'MONTO',
+              'TIPO',
+              'SUCURSAL',
+              'QUIEN REALIZÓ EL GASTO',
+              'FECHA REGISTRO',
+              'FECHA MODIFICACIÓN',
+              'ACCIONES'
+            ]
+          : [
+              'ID',
+              'GASTO',
+              'MONTO',
+              'TIPO',
+              'SUCURSAL',
+              'QUIEN REALIZÓ EL GASTO',
+              'FECHA REGISTRO',
+              'FECHA MODIFICACIÓN'
+            ]}
+        data={expense}
+        renderRow={(ex) => (
+          <tr key={ex.id} className="hover:bg-base-300">
+            <td className="text-center">{ex.id}</td>
+            <td className="text-center">{ex.descripcion}</td>
+            <td className="text-center">$ {ex.amount}</td>
+            <td className="text-center">{ex.typeExpense}</td>
+            <td className="text-center">
+              {ex.branch?.name || 'Sin sucursal'}
+            </td>
+            <td className="text-center">
+              {ex.user?.firstName} {ex.user?.lastName}
+            </td>
+            <td className="text-center">{ex.createdAt}</td>
+            <td className="text-center">{ex.updatedAt}</td>
+
+            {canManageExpenses && (
+              <td>
+                <div className="flex justify-center">
+                  <button
+                    className="btn btn-outline btn-error btn-sm w-full sm:w-auto"
+                    onClick={() => openDeleteModal(ex.id, ex.descripcion)}
+                  >
+                    <DeleteIcon className="w-5 h-5 text-current" />
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            )}
+          </tr>
+        )}
+        extraAction={
+          <button
+            className="btn btn-outline btn-primary w-full sm:w-auto"
+            onClick={openCreateModal}
+          >
+            <AddIcon className="w-5 h-5 text-current" />
+            Registrar Gasto
+          </button>
+        }
+        filasPorPagina={10}
+      />
+    </div>
+
+    {/* Modal registrar gasto */}
+    <dialog id="save_modal" className="modal modal-middle">
+      <div className="modal-box w-11/12 max-w-lg max-h-[90vh] overflow-y-auto">
+
+        <h3 className="font-bold text-lg sm:text-xl text-yellow-500 text-center">
+          {isEditing ? 'Editando el Gasto' : 'Registrando un Nuevo Gasto'}
+        </h3>
+
+        <form
+          className="mt-4 space-y-3"
+          onSubmit={handleSubmit}
+        >
+          <div>
+            <label className="label">
+              <span className="label-text">Descripción del gasto</span>
+            </label>
+            <textarea
+              required
+              placeholder="Descripción del gasto"
+              className="textarea textarea-bordered w-full min-h-24"
+              value={currentExpense.descripcion}
+              onChange={(e) =>
+                setCurrentExpense({
+                  ...currentExpense,
+                  descripcion: e.target.value
+                })
+              }
+            />
+          </div>
+
+          <div>
+            <label className="label">
+              <span className="label-text">Tipo de gasto</span>
+            </label>
+            <select
+              className="select select-bordered w-full"
+              required
+              value={currentExpense.typeExpense}
+              onChange={(e) =>
+                setCurrentExpense({
+                  ...currentExpense,
+                  typeExpense: e.target.value
+                })
+              }
+            >
+              <option value="">-- Selecciona un tipo de gasto --</option>
+              {typeExpenseOptions.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="label">
+              <span className="label-text">Monto del gasto</span>
+            </label>
+            <input
+              type="number"
+              required
+              min="0.01"
+              step="0.01"
+              placeholder="Monto del gasto"
+              className="input input-bordered w-full"
+              value={currentExpense.amount}
+              onChange={(e) =>
+                setCurrentExpense({
+                  ...currentExpense,
+                  amount: e.target.value
+                })
+              }
+            />
+          </div>
+
+          <div>
+            <label className="label">
+              <span className="label-text">Sucursal</span>
+            </label>
+            <select
+              className="select select-bordered w-full"
+              required
+              value={currentExpense.branch?.id || ''}
+              onChange={(e) => {
+                const selectedBranch = branches.find(
+                  (branch) => branch.id === Number(e.target.value)
+                ) || null;
+
+                setCurrentExpense((current) => ({
+                  ...current,
+                  branch: selectedBranch
+                }));
+              }}
+            >
+              <option value="" disabled>
+                -- Selecciona una sucursal --
+              </option>
+
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {saveError && (
+            <p className="text-sm text-error" role="alert">
+              {saveError}
+            </p>
+          )}
+
+          {/* Información del usuario */}
+          <div className="rounded-lg bg-base-200 p-3 text-sm space-y-1">
+            <p>
+              <strong>Usuario:</strong>{' '}
+              {currentUser?.firstName} {currentUser?.lastName}
+            </p>
+            <p>
+              <strong>Sucursal seleccionada:</strong>{' '}
+              {currentExpense.branch?.name || 'Selecciona una sucursal'}
+            </p>
+          </div>
+
+          <div className="modal-action flex flex-col-reverse sm:flex-row">
+            <button
+              type="button"
+              className="btn w-full sm:w-auto"
+              onClick={() =>
+                document.getElementById('save_modal').close()
+              }
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              className="btn btn-success w-full sm:w-auto"
+            >
+              {isEditing ? 'Actualizar' : 'Registrar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    {/* Modal confirmar eliminación */}
+    <dialog id="delete_modal" className="modal modal-middle">
+      <div className="modal-box w-11/12 max-w-md">
+
+        <h3 className="font-bold text-lg text-red-500">
+          Eliminar el Gasto Registrado
+        </h3>
+
+        <p className="py-4 break-words">
+          ¿Estás seguro de eliminar el gasto?
+          <strong className="block mt-2">{confirmDeleteDesc}</strong>
+        </p>
+
+        <div className="modal-action flex flex-col-reverse sm:flex-row">
+          <button
+            className="btn w-full sm:w-auto"
+            onClick={() => {
+              setconfirmDeleteId(null);
+              setConfirmDeleteDesc('');
+              document.getElementById('delete_modal').close();
+            }}
+          >
+            Cancelar
+          </button>
+
+          <button
+            className="btn btn-error w-full sm:w-auto"
+            onClick={confirmDelete}
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+  </div>
+);
+
 };
 
 export default Expenses
