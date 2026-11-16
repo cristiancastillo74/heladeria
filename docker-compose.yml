@@ -1,12 +1,12 @@
 
 services:
-
   mysql:
     image: mysql:8.4
     container_name: heladeria-mysql
     environment:
       MYSQL_ROOT_PASSWORD: "1313"
       MYSQL_DATABASE: heladeria
+      TZ: America/El_Salvador
     ports:
       - "3309:3306"
     volumes:
@@ -26,6 +26,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      TZ: America/El_Salvador
       SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/heladeria?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: "1313"
@@ -42,6 +43,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      TZ: America/El_Salvador
       CHOKIDAR_USEPOLLING: "true"
       HOST: "0.0.0.0"
     depends_on:
