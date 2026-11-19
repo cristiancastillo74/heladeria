@@ -72,7 +72,7 @@ export default function Dashboard() {
         <section className="mb-8 grid grid-cols-1 gap-8 xl:grid-cols-2">
           <div className="min-w-0 border-t border-base-300 pt-4">
             <h2 className="mb-4 text-lg font-semibold">Ventas de los últimos 7 días</h2>
-            <div className="h-72 w-full">
+            <div className="h-[420px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.weeklySales || []}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -87,12 +87,12 @@ export default function Dashboard() {
 
           <div className="min-w-0 border-t border-base-300 pt-4">
             <h2 className="mb-4 text-lg font-semibold">Productos más vendidos · 30 días</h2>
-            {topProducts.length ? <div className="h-72 w-full">
+            {topProducts.length ? <div className="h-[420px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topProducts} layout="vertical" margin={{ left: 18, right: 16 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                   <XAxis type="number" />
-                  <YAxis type="category" dataKey="product" width={110} />
+                  <YAxis type="category" dataKey="product" width={130} />
                   <Tooltip />
                   <Bar dataKey="quantity" name="Unidades" radius={[0, 3, 3, 0]}>
                     {topProducts.map((item, index) => <Cell key={item.product} fill={chartColors[index % chartColors.length]} />)}
@@ -125,7 +125,7 @@ export default function Dashboard() {
               <BarChart data={data.bestSellingFlavors} layout="vertical" margin={{ left: 18, right: 16 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" allowDecimals={false} />
-                <YAxis type="category" dataKey="flavor" width={120} />
+                <YAxis type="category" dataKey="flavor" width={140}  interval={0} />
                 <Tooltip />
                 <Bar dataKey="ballsSold" name="Bolas servidas" fill="#4E7B9B" radius={[0, 3, 3, 0]} />
               </BarChart>

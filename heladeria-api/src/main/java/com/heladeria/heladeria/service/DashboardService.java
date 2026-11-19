@@ -26,7 +26,12 @@ public class DashboardService {
     private final ExpenseRepository expenseRepository;
     private final ProductInventoryRepository productInventoryRepository;
     private final CylinderInventoryRepository cylinderInventoryRepository;
-        private final ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private static final List<String> EXCLUDED_PRODUCT_CODES = List.of(
+        "BRQ", "MIEL", "CON", "V5", "V8",
+        "DVT", "DPI", "R14", "R12", "ROL",
+        "RBA", "RSU", "RSJ", "TVPC", "TME"
+);
 
     public DashboardService(
             SaleItemRepository saleItemRepository,
@@ -57,20 +62,46 @@ public class DashboardService {
             weeklySales.add(new DailySalesDTO(date, total));
         }
 
-        LocalDateTimeRange month = new LocalDateTimeRange(today.minusDays(29).atStartOfDay(), today.plusDays(1).atStartOfDay());
+        LocalDateTimeRange month = new LocalDateTimeRange(
+                today.minusDays(29).atStartOfDay(),
+                today.plusDays(1).atStartOfDay()
+        );
+
         List<ProductSalesDTO> soldProducts = new ArrayList<>(
-                saleItemRepository.getProductSales(month.start(), month.end(), branchId));
+                saleItemRepository.getProductSalesExcluding(
+                        month.start(),
+                        month.end(),
+                        branchId,
+                        EXCLUDED_PRODUCT_CODES
+                )
+        );
+
         for (var product : productRepository.findAll()) {
-            if (soldProducts.stream().noneMatch(sold -> sold.product().equals(product.getName()))) {
-                soldProducts.add(new ProductSalesDTO(product.getName(), 0L, BigDecimal.ZERO));
-            }
+        if (!EXCLUDED_PRODUCT_CODES.contains(product.getCode())
+                && soldProducts.stream().noneMatch(
+                        sold -> sold.product().equals(product.getName()))) {
+
+                soldProducts.add(new ProductSalesDTO(
+                        product.getName(),
+                        0L,
+                        BigDecimal.ZERO
+                ));
         }
+        }
+
         List<ProductSalesDTO> leastSelling = soldProducts.stream()
                 .sorted(Comparator.comparing(ProductSalesDTO::quantity))
-                .limit(5).toList();
-        List<ProductSalesDTO> bestSelling = soldProducts.stream().limit(5).toList();
+                .limit(5)
+                .toList();
+        List<ProductSalesDTO> bestSelling = saleItemRepository.getBestProductSales(
+                month.start(),
+                month.end(),
+                branchId,
+                EXCLUDED_PRODUCT_CODES,
+                PageRequest.of(0, 10)
+        );
         List<FlavorSalesDTO> bestSellingFlavors = saleItemRepository.getFlavorSales(
-                month.start(), month.end(), branchId, PageRequest.of(0, 5));
+                month.start(), month.end(), branchId, PageRequest.of(0, 10));
 
         List<InventoryAlertDTO> alerts = new ArrayList<>();
         List<ProductInventory> products = branchId == null

@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
+import com.heladeria.heladeria.dto.ProductSalesDTO;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -81,6 +81,25 @@ public interface SaleItemRepository extends JpaRepository<SaleItem, Long> {
             @Param("endDate") LocalDateTime endDate,
             @Param("branchId") Long branchId
     );
+    
+    @Query("""
+        SELECT new com.heladeria.heladeria.dto.ProductSalesDTO(
+            i.product.name, SUM(i.quantity), SUM(i.price * i.quantity)
+        )
+        FROM SaleItem i JOIN i.sale s
+        WHERE s.createdAt >= :startDate AND s.createdAt < :endDate
+        AND (:branchId IS NULL OR s.branch.id = :branchId)
+        AND i.product.code NOT IN :excludedCodes
+        GROUP BY i.product.name
+        ORDER BY SUM(i.quantity) DESC
+    """)
+    List<com.heladeria.heladeria.dto.ProductSalesDTO> getBestProductSales(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("branchId") Long branchId,
+            @Param("excludedCodes") List<String> excludedCodes,
+            Pageable pageable
+    );
 
     @Query("""
         SELECT new com.heladeria.heladeria.dto.FlavorSalesDTO(
@@ -99,5 +118,23 @@ public interface SaleItemRepository extends JpaRepository<SaleItem, Long> {
             @Param("endDate") LocalDateTime endDate,
             @Param("branchId") Long branchId,
             Pageable pageable
+    );
+
+    @Query("""
+        SELECT new com.heladeria.heladeria.dto.ProductSalesDTO(
+            i.product.name, SUM(i.quantity), SUM(i.price * i.quantity)
+        )
+        FROM SaleItem i JOIN i.sale s
+        WHERE s.createdAt >= :startDate AND s.createdAt < :endDate
+        AND (:branchId IS NULL OR s.branch.id = :branchId)
+        AND i.product.code NOT IN :excludedCodes
+        GROUP BY i.product.name
+        ORDER BY SUM(i.quantity) DESC
+    """)
+    List<ProductSalesDTO> getProductSalesExcluding(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("branchId") Long branchId,
+            @Param("excludedCodes") List<String> excludedCodes
     );
 }
