@@ -136,6 +136,13 @@ return (
           </button>
         }
         filasPorPagina={10}
+        defaultSort={{ key: 'id', direction: 'desc' }}
+        sortConfig={[
+          { label: 'ID', key: 'id', type: 'number' },
+          { label: 'SABOR', key: 'flavor', type: 'string' },
+          { label: 'PROMEDIO DE BOLAS', key: 'estimatedBalls', type: 'number' },
+          { label: 'PRECIO COMPRA', key: 'purchasePrice', type: 'number' }
+        ]}
       />
     </div>
 

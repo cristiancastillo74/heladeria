@@ -192,7 +192,19 @@ return (
           </button>
         }
         filasPorPagina={10}
+        defaultSort={{ key: 'createdAt', direction: 'desc' }}
+        sortConfig={[
+          { label: 'ID', key: 'id', type: 'number' },
+          { label: 'GASTO', key: 'descripcion', type: 'string' },
+          { label: 'MONTO', key: 'amount', type: 'number' },
+          { label: 'TIPO', key: 'typeExpense', type: 'string' },
+          { label: 'SUCURSAL', key: 'branch.name', type: 'string' },
+          { label: 'QUIEN REALIZÓ EL GASTO', key: 'user.firstName', type: 'string' },
+          { label: 'FECHA REGISTRO', key: 'createdAt', type: 'date' },
+          { label: 'FECHA MODIFICACIÓN', key: 'updatedAt', type: 'date' }
+        ]}
       />
+
     </div>
 
     {/* Modal registrar gasto */}

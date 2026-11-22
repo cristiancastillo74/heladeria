@@ -180,6 +180,13 @@ return (
           )
         }
         filasPorPagina={10}
+        defaultSort={{ key: 'id', direction: 'desc' }}
+        sortConfig={[
+          { label: 'ID', key: 'id', type: 'number' },
+          { label: 'PRODUCTO', key: 'name', type: 'string' },
+          { label: 'EXISTENCIA', key: 'stock', type: 'number' },
+          { label: 'SUCURSAL', key: 'branch', type: 'string' },
+        ]}
       />
     </div>
 

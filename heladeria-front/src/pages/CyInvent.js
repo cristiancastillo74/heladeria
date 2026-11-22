@@ -223,6 +223,15 @@ return (
           )
         }
         filasPorPagina={10}
+        defaultSort={{ key: 'id', direction: 'desc' }}
+        sortConfig={[
+          { label: 'ID', key: 'id', type: 'number' },
+          { label: 'SABOR', key: 'name', type: 'string' },
+          { label: 'ESTADO', key: 'code', type: 'string' },
+          { label: 'FECHA DE CREACIÓN', key: 'createdAt', type: 'date' },
+          { label: 'FECHA DE MODIFICACIÓN', key: 'updatedAt', type: 'date' },
+          { label: 'FECHA DE COMPRA', key: 'createdAt', type: 'date' },
+        ]}
       />
     </div>
 

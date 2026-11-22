@@ -174,6 +174,18 @@ return (
           </button>
         }
         filasPorPagina={10}
+        defaultSort={{ key: 'id', direction: 'desc' }}
+        sortConfig={[
+          { label: 'ID', key: 'id', type: 'number' },
+          { label: 'PRODUCTO', key: 'name', type: 'string' },
+          { label: 'CODIGO', key: 'code', type: 'string' },
+          { label: 'ESTADO', key: 'status', type: 'string' },
+          { label: '¿ES HELADO?', key: 'isIceCream', type: 'string' },
+          { label: 'CATEGORIA', key: 'category', type: 'string' },
+          { label: 'PRECIO VENTA', key: 'price', type: 'number' },
+          { label: 'PRECIO COMPRA', key: 'purchasePrice', type: 'number' },
+          { label: 'BOLAS POR UNI', key: 'ballsPerUnit', type: 'number' }
+        ]}
       />
     </div>
 

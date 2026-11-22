@@ -187,6 +187,15 @@ export default function Users() {
 						</td>
 					</tr>
 				)}
+				defaultSort={{ key: 'id', direction: 'desc' }}
+				sortConfig={[
+					{ label: 'Usuario', key: 'username', type: 'string' },
+					{ label: 'Nombre', key: 'firstName', type: 'string' },
+					{ label: 'Rol', key: 'role', type: 'string' },
+					{ label: 'Inventarios', key: 'inventories', type: 'number' },
+					{ label: 'Sucursal', key: 'branch.name', type: 'string' },
+					{ label: 'Teléfono', key: 'phone', type: 'string' }
+				]}
 			/>
 
 			<dialog id="user_form_modal" className="modal">
